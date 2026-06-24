@@ -6,8 +6,8 @@ public enum AppInfo {
     public static let daemonBundleIdentifier = "com.lidrunner.daemon"
     public static let daemonPlistName = "\(daemonBundleIdentifier).plist"
     public static let daemonExecutableName = "LidRunnerDaemon"
-    public static let version = "0.2.1"
-    public static let build = "7"
+    public static let version = "0.2.2"
+    public static let build = "8"
 
     public static let awakeReason = "\(name) keeps local jobs running"
 }

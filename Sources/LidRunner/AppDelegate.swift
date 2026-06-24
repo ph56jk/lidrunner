@@ -7,16 +7,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let privilegedPMSet = PrivilegedPMSetService()
     private let preferencesStore = PreferencesStore()
     private let powerSourceMonitor = PowerSourceMonitor()
+    private let lidStateMonitor = LidStateMonitor()
     private let loginItemService = LoginItemService()
+    private let screenLockService = ScreenLockService()
 
     private var preferences = AppPreferences.defaults
     private var currentPowerSource = PowerSource.unknown
+    private var currentLidState = LidState.unknown
     private var isChangingClosedLidMode = false
 
     private var window: NSWindow?
     private var statusItem: NSStatusItem?
     private var powerSourceStatus = NSTextField(labelWithString: "")
     private var appStatus = NSTextField(labelWithString: "")
+    private var lidStateStatus = NSTextField(labelWithString: "")
     private var lidStatus = NSTextField(labelWithString: "")
     private var loginStatus = NSTextField(labelWithString: "")
     private var messageLabel = NSTextField(wrappingLabelWithString: "")
@@ -27,12 +31,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         preferences = preferencesStore.load()
         currentPowerSource = powerSourceMonitor.currentPowerSource()
+        currentLidState = lidStateMonitor.currentLidState()
 
         NSApp.setActivationPolicy(.regular)
         configureMainMenu()
         configureStatusItem()
         configureWindow()
         configurePowerSourceMonitor()
+        configureLidStateMonitor()
         updateControlValues()
         applyPowerPolicy(message: "Ready")
 
@@ -44,6 +50,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         powerSourceMonitor.stop()
+        lidStateMonitor.stop()
         powerManager.stop()
     }
 
@@ -58,6 +65,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         powerSourceMonitor.start()
+    }
+
+    private func configureLidStateMonitor() {
+        lidStateMonitor.onChange = { [weak self] state in
+            DispatchQueue.main.async {
+                self?.lidStateDidChange(state)
+            }
+        }
+        lidStateMonitor.start()
     }
 
     private func configureMainMenu() {
@@ -84,7 +100,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func configureWindow() {
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 460, height: 340),
+            contentRect: NSRect(x: 0, y: 0, width: 460, height: 360),
             styleMask: [.titled, .closable, .miniaturizable],
             backing: .buffered,
             defer: false
@@ -109,6 +125,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         powerSourceStatus = statusValueLabel()
         appStatus = statusValueLabel()
+        lidStateStatus = statusValueLabel()
         lidStatus = statusValueLabel()
         loginStatus = statusValueLabel()
         messageLabel.font = .systemFont(ofSize: 12)
@@ -119,6 +136,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let statusGrid = NSGridView(views: [
             [statusNameLabel("Power"), powerSourceStatus],
             [statusNameLabel("LidRunner"), appStatus],
+            [statusNameLabel("Lid"), lidStateStatus],
             [statusNameLabel("Closed lid"), lidStatus],
             [statusNameLabel("Login"), loginStatus]
         ])
@@ -208,6 +226,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         menu.addItem(.separator())
         menu.addItem(disabledMenuItem("Power: \(currentPowerSource.title)"))
+        menu.addItem(disabledMenuItem("Lid: \(currentLidState.title)"))
         menu.addItem(disabledMenuItem("State: \(appStateTitle)"))
         menu.addItem(disabledMenuItem("Closed lid: \(pmset.readClosedLidStatus().title)"))
         menu.addItem(disabledMenuItem("Helper: \(privilegedPMSet.status.title)"))
@@ -263,6 +282,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func updateStatusLabels() {
         powerSourceStatus.stringValue = currentPowerSource.title
         appStatus.stringValue = appStateTitle
+        lidStateStatus.stringValue = currentLidState.title
         lidStatus.stringValue = pmset.readClosedLidStatus().title
         loginStatus.stringValue = loginItemService.status.title
         updateControlValues()
@@ -374,6 +394,39 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         currentPowerSource = source
         applyPowerPolicy(message: "Power source: \(source.title)")
+    }
+
+    private func lidStateDidChange(_ state: LidState) {
+        let previousState = currentLidState
+        currentLidState = state
+
+        if previousState != .closed && state == .closed {
+            lockScreenForClosedLidIfNeeded()
+        }
+
+        updateStatusLabels()
+    }
+
+    private func lockScreenForClosedLidIfNeeded() {
+        guard shouldRun else { return }
+
+        messageLabel.stringValue = "Locking screen for closed lid..."
+
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self else { return }
+            let result = Result {
+                try self.screenLockService.lockScreen()
+            }
+
+            DispatchQueue.main.async {
+                switch result {
+                case .success:
+                    self.messageLabel.stringValue = "Screen locked for closed lid"
+                case let .failure(error):
+                    self.messageLabel.stringValue = "Could not lock screen: \(error.localizedDescription)"
+                }
+            }
+        }
     }
 
     @objc private func showWindow(_ sender: Any?) {

@@ -44,6 +44,22 @@ LidRunner.
 On newer macOS versions, `pmset -g` may report the state as `SleepDisabled`
 instead of showing `disablesleep` in `pmset -g custom`. LidRunner checks both.
 
+## Screen Locking
+
+When LidRunner prevents closed-lid sleep, macOS no longer reaches the normal
+sleep-lock path. LidRunner therefore watches `AppleClamshellState` and locks the
+current user session when the lid changes to closed while LidRunner is actively
+running.
+
+The lock uses:
+
+```bash
+/System/Library/CoreServices/Menu Extras/User.menu/Contents/Resources/CGSession -suspend
+```
+
+This keeps background work alive while still requiring the user to unlock the
+session after opening the machine again.
+
 ## Privileged Helper
 
 macOS does not allow LidRunner to change closed-lid policy without privileged

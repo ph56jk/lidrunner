@@ -5,6 +5,14 @@ All notable changes to LidRunner are documented in this file.
 The format is based on Keep a Changelog, and this project uses semantic
 versioning once public releases begin.
 
+## 0.2.2 - 2026-06-24
+
+### Added
+
+- Lid-state monitoring through `AppleClamshellState`.
+- Automatic screen locking when the MacBook lid closes while LidRunner is
+  actively keeping the machine awake.
+
 ## 0.2.1 - 2026-06-24
 
 ### Added

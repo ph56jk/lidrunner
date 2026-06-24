@@ -20,7 +20,7 @@ Useful reports include:
 
 Security-sensitive areas include:
 
-- Commands run through `osascript` or `pmset`
+- Commands run through `osascript`, `pmset`, or `CGSession`
 - The bundled privileged helper and LaunchDaemon plist
 - XPC communication between the app and helper
 - Release packaging and code signing
