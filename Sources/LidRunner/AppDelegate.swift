@@ -410,20 +410,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func lockScreenForClosedLidIfNeeded() {
         guard shouldRun else { return }
 
-        messageLabel.stringValue = "Locking screen for closed lid..."
+        messageLabel.stringValue = "Locking screen and sleeping displays..."
 
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self else { return }
             let result = Result {
-                try self.screenLockService.lockScreen()
+                try self.screenLockService.lockScreenAndSleepDisplays()
             }
 
             DispatchQueue.main.async {
                 switch result {
                 case .success:
-                    self.messageLabel.stringValue = "Screen locked for closed lid"
+                    self.messageLabel.stringValue = "Screen locked and displays sleeping"
                 case let .failure(error):
-                    self.messageLabel.stringValue = "Could not lock screen: \(error.localizedDescription)"
+                    self.messageLabel.stringValue = "Could not sleep displays: \(error.localizedDescription)"
                 }
             }
         }

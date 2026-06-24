@@ -3,15 +3,15 @@ import os
 
 public enum ScreenLockError: LocalizedError {
     case launchFailed(Error)
-    case commandFailed(Int32, String)
+    case commandFailed(String, Int32, String)
 
     public var errorDescription: String? {
         switch self {
         case let .launchFailed(error):
             return error.localizedDescription
-        case let .commandFailed(status, output):
+        case let .commandFailed(action, status, output):
             if output.isEmpty {
-                return "Screen lock command failed with exit code \(status)."
+                return "\(action) failed with exit code \(status)."
             }
             return output
         }
@@ -30,10 +30,26 @@ public struct ScreenLockService {
         )
 
         guard result.status == 0 else {
-            throw ScreenLockError.commandFailed(result.status, result.output)
+            throw ScreenLockError.commandFailed("Screen lock", result.status, result.output)
         }
 
         logger.info("Screen locked")
+    }
+
+    public func sleepDisplays() throws {
+        let result = runProcess("/usr/bin/pmset", arguments: ["displaysleepnow"])
+
+        guard result.status == 0 else {
+            throw ScreenLockError.commandFailed("Display sleep", result.status, result.output)
+        }
+
+        logger.info("Displays sent to sleep")
+    }
+
+    public func lockScreenAndSleepDisplays() throws {
+        try lockScreen()
+        Thread.sleep(forTimeInterval: 0.35)
+        try sleepDisplays()
     }
 
     private func runProcess(_ executable: String, arguments: [String]) -> (status: Int32, output: String) {

@@ -5,6 +5,13 @@ All notable changes to LidRunner are documented in this file.
 The format is based on Keep a Changelog, and this project uses semantic
 versioning once public releases begin.
 
+## 0.2.3 - 2026-06-24
+
+### Changed
+
+- Closing the lid while LidRunner is active now locks the session and then
+  immediately requests display sleep with `pmset displaysleepnow`.
+
 ## 0.2.2 - 2026-06-24
 
 ### Added

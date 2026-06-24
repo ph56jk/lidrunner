@@ -13,7 +13,7 @@ releases should be signed and notarized by a maintainer before distribution.
 The archive is written to:
 
 ```text
-dist/releases/LidRunner-0.2.2-macos.zip
+dist/releases/LidRunner-0.2.3-macos.zip
 ```
 
 ## Release Checklist

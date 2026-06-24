@@ -14,7 +14,8 @@ the machine would otherwise idle.
 - Provides a menu bar status item and a compact three-control AppKit window.
 - Can launch at login through macOS `SMAppService`.
 - Can pause awake assertions automatically unless the Mac is on charger power.
-- Locks the user session when the MacBook lid closes while LidRunner is active.
+- Locks the user session and sleeps displays when the MacBook lid closes while
+  LidRunner is active.
 - Uses a single `Enable LidRunner` switch to control both awake assertions and
   macOS closed-lid sleep prevention.
 - Can install an optional bundled privileged helper so closed-lid mode changes
