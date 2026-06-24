@@ -50,6 +50,17 @@ public struct PMSetService {
         logger.info("pmset disablesleep set to \(value)")
     }
 
+    public func setClosedLidModeDirect(enabled: Bool) throws {
+        let value = enabled ? "1" : "0"
+        let result = runProcess("/usr/bin/pmset", arguments: ["-a", "disablesleep", value])
+
+        guard result.status == 0 else {
+            throw PMSetError.commandFailed(result.status, result.output)
+        }
+
+        logger.info("pmset disablesleep set directly to \(value)")
+    }
+
     public static func parseClosedLidStatus(from output: String) -> ClosedLidStatus {
         for line in output.components(separatedBy: .newlines) {
             let parts = line.split(whereSeparator: { $0 == " " || $0 == "\t" })

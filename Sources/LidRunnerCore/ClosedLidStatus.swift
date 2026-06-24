@@ -1,6 +1,6 @@
 import Foundation
 
-public enum ClosedLidStatus: Equatable {
+public enum ClosedLidStatus: String, Equatable {
     case enabled
     case disabled
     case notReported

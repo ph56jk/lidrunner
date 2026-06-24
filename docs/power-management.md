@@ -44,6 +44,23 @@ LidRunner.
 On newer macOS versions, `pmset -g` may report the state as `SleepDisabled`
 instead of showing `disablesleep` in `pmset -g custom`. LidRunner checks both.
 
+## Privileged Helper
+
+macOS does not allow LidRunner to change closed-lid policy without privileged
+approval. To make daily use less noisy, the app bundle includes an optional
+LaunchDaemon helper. The user installs it from the menu bar item, approves the
+background item in macOS, and LidRunner then sends closed-lid changes to the
+helper over XPC.
+
+The helper is registered with `SMAppService.daemon(plistName:)` and is bundled
+inside the app:
+
+- Executable: `Contents/MacOS/LidRunnerDaemon`
+- LaunchDaemon plist: `Contents/Library/LaunchDaemons/com.lidrunner.daemon.plist`
+
+If the helper is not enabled, LidRunner falls back to the normal administrator
+prompt path using `osascript`.
+
 ## Charger-Only Mode
 
 When charger-only mode is enabled, LidRunner treats only IOKit's `AC Power`
@@ -51,9 +68,9 @@ source as allowed for awake assertions. `Battery Power`, `UPS Power`, and
 unknown power-source states pause awake assertions.
 
 If closed-lid mode is enabled, LidRunner disables it when charger-only mode is
-active and the Mac leaves AC power. It does not automatically re-enable
-closed-lid mode when AC power returns, because that would create a surprise
-administrator prompt.
+active and the Mac leaves AC power. When AC power returns and `Enable LidRunner`
+is still on, LidRunner attempts to resume closed-lid mode. Installing the
+privileged helper avoids repeated password prompts for that automatic resume.
 
 The UI intentionally exposes only three primary controls:
 

@@ -13,6 +13,9 @@ versioning once public releases begin.
 - Charger-only mode that pauses awake assertions away from AC power.
 - Preferences storage for awake mode, charger-only mode, and manual-launch window behavior.
 - Power-source monitoring through IOKit notifications.
+- Optional privileged LaunchDaemon helper for closed-lid mode changes after
+  one-time user approval.
+- XPC client validation for the privileged helper.
 - Unit tests for preferences, power-source classification, and power policy decisions.
 
 ### Changed
@@ -22,7 +25,9 @@ versioning once public releases begin.
 - Closed-lid mode uses a single checkbox so the current state is obvious.
 - Charger-only mode now disables closed-lid mode whenever the Mac leaves AC power.
 - The main window now has only three primary controls: enable LidRunner, charger-only mode, and launch at login.
-- Local staged app bundles are ad-hoc signed so login item registration can work during development.
+- Local staged app bundles now include the helper executable and LaunchDaemon
+  plist, and are ad-hoc signed so ServiceManagement registration can work
+  during development.
 
 ## 0.1.0 - Unreleased
 

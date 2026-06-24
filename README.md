@@ -16,6 +16,8 @@ the machine would otherwise idle.
 - Can pause awake assertions automatically unless the Mac is on charger power.
 - Uses a single `Enable LidRunner` switch to control both awake assertions and
   macOS closed-lid sleep prevention.
+- Can install an optional bundled privileged helper so closed-lid mode changes
+  do not require a password prompt every time.
 - Reports closed-lid state from both current `SleepDisabled` output and older
   `disablesleep` custom output.
 - Ships as a plain SwiftPM project with scripts for build, test, staging, and
@@ -29,9 +31,11 @@ adapter, keep the machine ventilated, and stop closed-lid mode when you no
 longer need it.
 
 LidRunner does not silently change privileged settings. Enabling or disabling
-closed-lid behavior uses macOS administrator approval. If charger-only mode is
-enabled, LidRunner stops awake assertions and disables closed-lid mode as soon
-as the Mac leaves AC power.
+closed-lid behavior uses macOS administrator approval. The optional privileged
+helper still requires user approval before it is installed; it only avoids
+repeating the password prompt for later closed-lid changes. If charger-only
+mode is enabled, LidRunner stops awake assertions and disables closed-lid mode
+as soon as the Mac leaves AC power.
 
 ## Requirements
 
@@ -75,8 +79,11 @@ LidRunner uses several small layers:
 - `PowerPolicy` decides whether awake assertions should run from preferences
   and the current power source.
 - `LoginItemService` uses `SMAppService.mainApp` for launch-at-login.
-- `PMSetService` optionally runs `pmset -a disablesleep 1` or
-  `pmset -a disablesleep 0` through `osascript` with administrator privileges.
+- `PrivilegedPMSetService` can register a bundled LaunchDaemon through
+  `SMAppService.daemon(plistName:)` and talk to it over XPC.
+- `PMSetService` falls back to running `pmset -a disablesleep 1` or
+  `pmset -a disablesleep 0` through `osascript` with administrator privileges
+  when the helper is not enabled.
 
 The second layer is intentionally user-triggered because it changes a
 system-wide power setting.
@@ -85,10 +92,11 @@ More detail is available in [docs/power-management.md](docs/power-management.md)
 
 ## Development
 
-The project is split into two targets:
+The project is split into three targets:
 
 - `LidRunnerCore`: preferences, policy, power-management services, and testable parsing logic.
 - `LidRunner`: AppKit UI and app entrypoint.
+- `LidRunnerDaemon`: optional privileged helper for passwordless `pmset` changes after user approval.
 
 Run tests:
 

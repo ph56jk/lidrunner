@@ -7,3 +7,5 @@ cd "$ROOT_DIR"
 swift test
 CONFIGURATION=release "$ROOT_DIR/script/stage_app.sh" >/dev/null
 plutil -lint "$ROOT_DIR/dist/LidRunner.app/Contents/Info.plist"
+plutil -lint "$ROOT_DIR/dist/LidRunner.app/Contents/Library/LaunchDaemons/com.lidrunner.daemon.plist"
+codesign --verify --deep --strict "$ROOT_DIR/dist/LidRunner.app"

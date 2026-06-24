@@ -7,7 +7,8 @@ let package = Package(
         .macOS(.v13)
     ],
     products: [
-        .executable(name: "LidRunner", targets: ["LidRunner"])
+        .executable(name: "LidRunner", targets: ["LidRunner"]),
+        .executable(name: "LidRunnerDaemon", targets: ["LidRunnerDaemon"])
     ],
     targets: [
         .target(
@@ -22,6 +23,13 @@ let package = Package(
             dependencies: ["LidRunnerCore"],
             linkerSettings: [
                 .linkedFramework("AppKit")
+            ]
+        ),
+        .executableTarget(
+            name: "LidRunnerDaemon",
+            dependencies: ["LidRunnerCore"],
+            linkerSettings: [
+                .linkedFramework("Security")
             ]
         ),
         .testTarget(

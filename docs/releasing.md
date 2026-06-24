@@ -23,5 +23,7 @@ dist/releases/LidRunner-0.2.0-macos.zip
 - Update `CHANGELOG.md`.
 - Run `./script/check.sh`.
 - Build `./script/package_release.sh`.
+- Confirm the app bundle contains `Contents/MacOS/LidRunnerDaemon` and
+  `Contents/Library/LaunchDaemons/com.lidrunner.daemon.plist`.
 - Sign and notarize the app bundle for public distribution.
 - Create a GitHub release with the zip and changelog notes.

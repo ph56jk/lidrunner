@@ -4,6 +4,7 @@ import LidRunnerCore
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private let powerManager = PowerManager()
     private let pmset = PMSetService()
+    private let privilegedPMSet = PrivilegedPMSetService()
     private let preferencesStore = PreferencesStore()
     private let powerSourceMonitor = PowerSourceMonitor()
     private let loginItemService = LoginItemService()
@@ -209,6 +210,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(disabledMenuItem("Power: \(currentPowerSource.title)"))
         menu.addItem(disabledMenuItem("State: \(appStateTitle)"))
         menu.addItem(disabledMenuItem("Closed lid: \(pmset.readClosedLidStatus().title)"))
+        menu.addItem(disabledMenuItem("Helper: \(privilegedPMSet.status.title)"))
+
+        menu.addItem(.separator())
+        if privilegedPMSet.status == .enabled {
+            menu.addItem(withTitle: "Remove Privileged Helper", action: #selector(uninstallPrivilegedHelper(_:)), keyEquivalent: "")
+        } else {
+            menu.addItem(withTitle: "Install Privileged Helper", action: #selector(installPrivilegedHelper(_:)), keyEquivalent: "")
+        }
 
         menu.addItem(.separator())
         menu.addItem(withTitle: "Show \(AppInfo.name)", action: #selector(showWindow(_:)), keyEquivalent: "")
@@ -334,7 +343,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             guard let self else { return }
 
             let result = Result {
-                try self.pmset.setClosedLidMode(enabled: enabled)
+                if self.privilegedPMSet.status == .enabled {
+                    try self.privilegedPMSet.setClosedLidMode(enabled: enabled)
+                } else {
+                    try self.pmset.setClosedLidMode(enabled: enabled)
+                }
             }
 
             DispatchQueue.main.async {
@@ -394,6 +407,45 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         setControlsEnabled(true)
         updateStatusLabels()
+    }
+
+    @objc private func installPrivilegedHelper(_ sender: Any?) {
+        do {
+            try privilegedPMSet.register()
+            messageLabel.stringValue = helperInstallMessage()
+        } catch {
+            showError(error)
+            messageLabel.stringValue = "Privileged helper did not change"
+        }
+
+        updateStatusLabels()
+    }
+
+    @objc private func uninstallPrivilegedHelper(_ sender: Any?) {
+        do {
+            try privilegedPMSet.unregister()
+            messageLabel.stringValue = "Privileged helper removed"
+        } catch {
+            showError(error)
+            messageLabel.stringValue = "Privileged helper did not change"
+        }
+
+        updateStatusLabels()
+    }
+
+    private func helperInstallMessage() -> String {
+        switch privilegedPMSet.status {
+        case .enabled:
+            return "Privileged helper enabled"
+        case .requiresApproval:
+            return "Approve LidRunner in Login Items & Background Items"
+        case .notFound:
+            return "Privileged helper was not found in this app bundle"
+        case .disabled:
+            return "Privileged helper registered"
+        case .unavailable:
+            return "Privileged helper is unavailable"
+        }
     }
 
     private func desiredState(from sender: Any?, current: Bool) -> Bool {
