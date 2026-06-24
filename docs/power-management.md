@@ -51,6 +51,11 @@ sleep-lock path. LidRunner therefore watches `AppleClamshellState`, locks the
 current user session, and asks displays to sleep when the lid changes to closed
 while LidRunner is actively running.
 
+LidRunner only does this after closed-lid mode is confirmed enabled. If macOS
+still reports `SleepDisabled` as off, the app asks for closed-lid approval first
+instead of sleeping displays, because display sleep plus normal lid policy can
+become full system sleep.
+
 The lock uses:
 
 ```bash

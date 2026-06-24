@@ -5,6 +5,13 @@ All notable changes to LidRunner are documented in this file.
 The format is based on Keep a Changelog, and this project uses semantic
 versioning once public releases begin.
 
+## 0.2.4 - 2026-06-24
+
+### Fixed
+
+- Lid-close display sleep now waits until closed-lid mode is actually enabled,
+  avoiding accidental full system sleep when macOS still has `SleepDisabled` off.
+
 ## 0.2.3 - 2026-06-24
 
 ### Changed

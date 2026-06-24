@@ -410,6 +410,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func lockScreenForClosedLidIfNeeded() {
         guard shouldRun else { return }
 
+        guard pmset.readClosedLidStatus() == .enabled else {
+            messageLabel.stringValue = "Closed-lid mode needs approval first"
+            reconcileClosedLidMode(
+                enabled: true,
+                message: "Closed-lid mode enabled; close the lid again"
+            )
+            return
+        }
+
         messageLabel.stringValue = "Locking screen and sleeping displays..."
 
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in

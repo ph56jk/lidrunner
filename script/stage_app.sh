@@ -3,8 +3,8 @@ set -euo pipefail
 
 APP_NAME="LidRunner"
 BUNDLE_ID="com.lidrunner.app"
-APP_VERSION="0.2.3"
-APP_BUILD="9"
+APP_VERSION="0.2.4"
+APP_BUILD="10"
 MIN_SYSTEM_VERSION="13.0"
 CONFIGURATION="${CONFIGURATION:-debug}"
 DAEMON_NAME="LidRunnerDaemon"
